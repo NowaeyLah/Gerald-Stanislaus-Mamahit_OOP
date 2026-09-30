@@ -37,13 +37,8 @@ public class Bullet extends GameObject {
     @Override
     public void onCollision(Collidable other) {
         if (other instanceof Enemy enemy) {
-            // 1. Tampilkan pesan bahwa Bullet mengenai Enemy
             System.out.println("Bullet hit " + enemy.getName() + " for " + damage + " DMG!");
-
-            // 2. Panggil takeDamage() milik Enemy
             enemy.takeDamage(damage);
-
-            // 3. Bikin si bullet hancur (destroy)
             destroy();
         }
     }

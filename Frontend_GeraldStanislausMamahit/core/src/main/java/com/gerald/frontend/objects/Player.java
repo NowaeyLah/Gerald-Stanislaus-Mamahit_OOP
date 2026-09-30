@@ -2,7 +2,6 @@ package com.gerald.frontend.objects;
 
 import com.badlogic.gdx.graphics.Color;
 import com.gerald.frontend.objects.bullets.Bullet;
-import com.gerald.frontend.objects.BulletType;
 import com.gerald.frontend.objects.enemies.Enemy;
 import com.gerald.frontend.objects.items.Item;
 import com.badlogic.gdx.Gdx;
@@ -36,7 +35,6 @@ public class Player extends GameObject {
 
     @Override
     public void update(float delta) {
-        // Player movement handling (LibGDX input)
         if (Gdx.input != null) {
             if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
                 y += speed * delta;
@@ -53,13 +51,21 @@ public class Player extends GameObject {
         }
     }
 
-    public void moveUp(float delta) { this.y += speed * delta; }
+    public void moveUp(float delta) {
+        this.y += speed * delta;
+    }
 
-    public void moveDown(float delta) { this.y -= speed * delta; }
+    public void moveDown(float delta) {
+        this.y -= speed * delta;
+    }
 
-    public void moveLeft(float delta) { this.x -= speed * delta; }
+    public void moveLeft(float delta) {
+        this.x -= speed * delta;
+    }
 
-    public void moveRight(float delta) { this.x += speed * delta; }
+    public void moveRight(float delta) {
+        this.x += speed * delta;
+    }
 
     @Override
     public void onCollision(Collidable other) {
@@ -78,17 +84,13 @@ public class Player extends GameObject {
         }
     }
 
-    // Method shootBullet() untuk membuat instansiasi Bullet baru
     public Bullet shootBullet() {
         int damage = 10 + power;
         System.out.println(name + " shoots bullet dealing " + damage + " DMG!");
-        // Posisi X diatur di tengah objek Player: x + (width / 2) - 4
-        // Posisi Y diatur tepat di atas objek Player: y + height
         return new Bullet(x + width / 2 - 4, y + height, BulletType.AMULET, damage);
     }
 
     public void collectItem(Item item) {
-        // Sesuai Soal 1b Modul 4: Mencegah item diambil dua kali di frame yang sama
         if (item.isDestroyed()) return;
 
         ItemType type = item.getItemTypeEnum();
@@ -118,8 +120,6 @@ public class Player extends GameObject {
             addScore(item.getScoreValue());
             System.out.println(name + " collected " + item.getItemType() + "!");
         }
-
-        // Sesuai Soal 1b Modul 4: Tandai item sebagai destroyed agar dihapus oleh Iterator
         item.destroy();
     }
 
@@ -142,18 +142,34 @@ public class Player extends GameObject {
         return getHp() > 0;
     }
 
-    // Encapsulation getters and setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public int getHp() { return hp; }
-    public void setHp(int hp) { this.hp = Math.max(0, hp); }
+    public int getHp() {
+        return hp;
+    }
+    public void setHp(int hp) {
+        this.hp = Math.max(0, hp);
+    }
 
-    public int getPower() { return power; }
-    public void setPower(int power) { this.power = power; }
+    public int getPower() {
+        return power;
+    }
+    public void setPower(int power) {
+        this.power = power;
+    }
 
-    public int getSpellCards() { return spellCards; }
-    public void setSpellCards(int spellCards) { this.spellCards = spellCards; }
-
-    public long getScore() { return score; }
+    public int getSpellCards() {
+        return spellCards;
+    }
+    public void setSpellCards(int spellCards) {
+        this.spellCards = spellCards;
+    }
+    public long getScore() {
+        return score;
+    }
 }

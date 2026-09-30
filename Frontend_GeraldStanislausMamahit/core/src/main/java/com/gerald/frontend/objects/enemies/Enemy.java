@@ -32,10 +32,7 @@ public class Enemy extends GameObject {
         System.out.println(getName() + " took " + damage + " damage! HP: " + getHp() + "/" + getMaxHp());
         if (wasAlive && getHp() == 0) {
             System.out.println(getName() + " was defeated!");
-
-            // Soal 9: Tandai enemy ini sebagai destroyed agar nanti dihapus dari List oleh Iterator
             destroy();
-
             return true;
         }
         return false;
@@ -50,7 +47,6 @@ public class Enemy extends GameObject {
         return this.hp > 0;
     }
 
-    // Encapsulation getters and setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

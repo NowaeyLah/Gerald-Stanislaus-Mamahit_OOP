@@ -2,7 +2,6 @@ package com.gerald.frontend.objects.enemies;
 
 import com.badlogic.gdx.graphics.Color;
 import com.gerald.frontend.objects.Collidable;
-import com.gerald.frontend.objects.items.Item;
 import com.gerald.frontend.objects.Player;
 
 public class Fairy extends Enemy {
