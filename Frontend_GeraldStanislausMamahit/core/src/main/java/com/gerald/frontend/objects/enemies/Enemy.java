@@ -28,11 +28,14 @@ public class Enemy extends GameObject {
 
     public boolean takeDamage(int damage) {
         boolean wasAlive = isAlive();
-        setHp(getHp() - damage);
-        System.out.println(getName() + " took " + damage + " damage! HP: " + getHp() + "/" + getMaxHp());
-        if (wasAlive && getHp() == 0) {
-            System.out.println(getName() + " was defeated!");
-            destroy();
+        this.hp -= damage;
+        if (this.hp < 0) {
+            this.hp = 0;
+        }
+        System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
+        if (wasAlive && this.hp == 0) {
+            System.out.println(name + " was defeated!");
+            this.destroy(); // Mark enemy as destroyed/inactive so Iterator removes it!
             return true;
         }
         return false;
@@ -47,6 +50,7 @@ public class Enemy extends GameObject {
         return this.hp > 0;
     }
 
+    // Encapsulation getters and setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

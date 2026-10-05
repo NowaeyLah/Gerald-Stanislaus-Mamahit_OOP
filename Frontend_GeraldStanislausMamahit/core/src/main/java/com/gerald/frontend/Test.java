@@ -11,10 +11,13 @@ import com.gerald.frontend.objects.items.Item;
 import com.gerald.frontend.objects.items.ItemType;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Test {
     public static void main(String[] args) {
+        Test runner = new Test(); // Instantiating Test runner instance
+
         // ==========================================
         // MODULE 1: BASIC CLASSES & OBJECT INTERACTION
         // ==========================================
@@ -88,7 +91,7 @@ public class Test {
         // 2. Initializing List<GameObject> entities for iterative updates
         List<GameObject> entities = new ArrayList<>();
         Player p = new Player(100, 100, "Reimu Hakurei", 100, 15, 3);
-        Fairy f = new Fairy(100, 100, "Stage 1 Fairy", 20);      // Placed at (100, 100) -> Collides with player!
+        Fairy f = new Fairy(100, 100, "Stage 1 Fairy", 20);     // Placed at (100, 100) -> Collides with player!
         Boss b = new Boss(200, 200, "Cirno", 150);
         Item item = new Item(300, 300, ItemType.POWER);
 
@@ -132,20 +135,75 @@ public class Test {
 
 
         // ==========================================
-        // MODULE 4: GENERIC TYPE, COLLECTION, & ITERATOR PATTERN (PRE-CS SANITY CHECK)
+        // MODULE 4: COLLECTIONS, GENERICS & ITERATOR SAFE REMOVAL
         // ==========================================
-        System.out.println("\n\n=== TOUHOU OOP PRACTICUM - MODULE 4: PRE-CS SANITY CHECK ===");
+        System.out.println("\n\n=== TOUHOU OOP PRACTICUM - MODULE 4: COLLECTIONS, GENERICS & ITERATORS ===");
 
-        Player reimuMod4 = new Player("Reimu Hakurei", 100, 15, 3);
-        Bullet bullet = reimuMod4.shootBullet();
+        List<GameObject> gameEntities = new ArrayList<>();
 
-        System.out.println("Bullet created at: (" + bullet.getX() + ", " + bullet.getY() + ") | Damage: " + bullet.getDamage());
+        Player player4 = new Player(200, 50, "Reimu Hakurei", 100, 15, 3);
+        Fairy targetFairy = new Fairy(200, 200, "Target Fairy", 20); // Placed at y=200, HP 20
 
-        bullet.update(0.1f);
-        System.out.println("Bullet Y after 0.1s: " + bullet.getY());
+        gameEntities.add(player4);
+        gameEntities.add(targetFairy);
 
-        System.out.println("Is bullet off screen? " + bullet.isOffScreen(640, 480));
+        System.out.println("\n--- Initial Entities in List<GameObject> ---");
+        System.out.println("Entities Count: " + gameEntities.size());
+
+        System.out.println("\n--- Turn 1: Player Fires Bullet ---");
+        Bullet bullet1 = player4.shootBullet();
+        bullet1.setX(200); // Align bullet X with Fairy
+        bullet1.setY(150); // Placed below Fairy at y=150
+        gameEntities.add(bullet1);
+
+        System.out.println("Entities Count before update: " + gameEntities.size());
+
+        System.out.println("\n--- Updating frame: Bullet moves upward & collides with Fairy ---");
+        // Simulate collision check
+        for (int i = 0; i < gameEntities.size(); i++) {
+            for (int j = i + 1; j < gameEntities.size(); j++) {
+                GameObject e1 = gameEntities.get(i);
+                GameObject e2 = gameEntities.get(j);
+                if (e1.getCoreHitbox().overlaps(e2.getCoreHitbox())) {
+                    e1.onCollision(e2);
+                    e2.onCollision(e1);
+                }
+            }
+        }
+
+        // Test non-static instance method updateAndClean<T extends GameObject>
+        runner.updateAndClean(gameEntities, 0.125f, 640, 480);
+
+        System.out.println("Entities Count after generic Iterator cleanup: " + gameEntities.size());
+
+        System.out.println("\n--- Turn 2: Bullet Flies Off-Screen ---");
+        Bullet offScreenBullet = new Bullet(200, 450, 400f, BulletType.AMULET, 25);
+        gameEntities.add(offScreenBullet);
+        System.out.println("Initial Offscreen Bullet Y: " + offScreenBullet.getY());
+
+        System.out.println("Updating frame using non-static generic instance method updateAndClean<T> (0.5s movement):");
+        runner.updateAndClean(gameEntities, 0.5f, 640, 480);
+
+        System.out.println("Entities Count after off-screen generic Iterator cleanup: " + gameEntities.size());
 
         System.out.println("\n=== Module 4 Test Completed Successfully ===");
+    }
+
+    // Non-static (Instance) Generic Method with Bounded Type Parameter <T extends GameObject>
+    public <T extends GameObject> void updateAndClean(List<T> list, float delta, float screenWidth, float screenHeight) {
+        Iterator<T> iterator = list.iterator();
+        while (iterator.hasNext()) {
+            T entity = iterator.next();
+            entity.update(delta);
+
+            if (entity.isOffScreen(screenWidth, screenHeight) || entity.isDestroyed()) {
+                if (entity.isOffScreen(screenWidth, screenHeight)) {
+                    System.out.println("Removed via Generic Iterator (off-screen): " + entity.getClass().getSimpleName() + " at y=" + entity.getY());
+                } else {
+                    System.out.println("Removed via Generic Iterator (destroyed): " + entity.getClass().getSimpleName());
+                }
+                iterator.remove(); // Safe removal using Iterator!
+            }
+        }
     }
 }

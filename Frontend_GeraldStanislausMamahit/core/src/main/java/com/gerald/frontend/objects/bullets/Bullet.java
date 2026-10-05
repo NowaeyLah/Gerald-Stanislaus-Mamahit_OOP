@@ -24,22 +24,19 @@ public class Bullet extends GameObject {
 
     @Override
     public void update(float delta) {
-        // Posisi y bertambah sebesar speed * delta (bullet bergerak ke atas)
-        y += speed * delta;
+        // Bullet moves upwards linearly
+        this.y += speed * delta;
     }
-
-    public BulletType getBulletType() { return bulletType; }
-    public void setBulletType(BulletType bulletType) { this.bulletType = bulletType; }
-
-    public int getDamage() { return damage; }
-    public void setDamage(int damage) { this.damage = damage; } // Typo camelCase diperbaiki
 
     @Override
     public void onCollision(Collidable other) {
         if (other instanceof Enemy enemy) {
             System.out.println("Bullet hit " + enemy.getName() + " for " + damage + " DMG!");
-            enemy.takeDamage(damage);
-            destroy();
+            boolean defeated = enemy.takeDamage(damage);
+            this.destroy(); // Bullet is destroyed on collision
         }
     }
+
+    public BulletType getBulletType() { return bulletType; }
+    public int getDamage() { return damage; }
 }
