@@ -29,7 +29,7 @@ public class EntityFactory {
         //    variabel lokal bernama `idleAnim`.
         Animation<TextureRegion> idleAnim = AssetManager.getInstance().getAnimation("boss_idle");
         // 3. Pasang idleAnim pada boss melalui boss.setAnimation(...).
-        boss.SetAnimation(idleAnim);
+        boss.setAnimation(idleAnim);
         // 4. Kembalikan boss.
         return boss;
     }
@@ -44,7 +44,7 @@ public class EntityFactory {
         //    variabel lokal bernama `idleAnim`.
         Animation<TextureRegion> idleAnim = AssetManager.getInstance().getAnimation("fairy_idle_red");
         // 3. Pasang idleAnim pada fairy melalui fairy.setAnimation(...).
-        fairy.SetAnimation(idleAnim);
+        fairy.setAnimation(idleAnim);
         // 4. Kembalikan fairy.
         return fairy;
     }
@@ -53,7 +53,7 @@ public class EntityFactory {
         // TODO:
         // 1. Buat Fairy baru dengan x, y, name, dan hp dari parameter;
         //    simpan pada variabel lokal bernama `fairy`.
-        Fairy fairy = new Fairy(x, y, name, hp, keyString);
+        Fairy fairy = new Fairy(x, y, name, hp);
 
         // 2. Ambil animasi untuk keyString melalui getAnimation(...)
         //    dari AssetManager.getInstance(). Simpan hasilnya pada
@@ -61,7 +61,7 @@ public class EntityFactory {
         Animation<TextureRegion> idleAnim = AssetManager.getInstance().getAnimation("fairy_idle_red");
 
         // 3. Pasang idleAnim pada fairy melalui fairy.setAnimation(...).
-        fairy.SetAnimation(idleAnim);
+        fairy.setAnimation(idleAnim);
 
         // 4. Kembalikan fairy.
         return fairy;
@@ -90,4 +90,27 @@ public class EntityFactory {
         bullet.setSprite(sprite);
         return bullet;
     }
+    public static Bullet createPlayerBullet(float x, float y, int damage, String spriteKey) {
+        // TODO 1: Ambil TextureRegion untuk spriteKey melalui getTextureRegion dari
+        // AssetManager.getInstance(), lalu masukkan ke variabel lokal `sprite`.
+        TextureRegion sprite = AssetManager.getInstance().getTextureRegion(spriteKey);
+        // TODO 2:
+        // Buat Bullet baru dengan x, y, BulletType.AMULET, dan damage;
+        // simpan pada variabel lokal `bullet`.
+        Bullet bullet = new Bullet(x, y, BulletType.AMULET, damage);
+
+        // TODO 3:
+        // Pasang sprite pada bullet melalui bullet.setSprite(...).
+        bullet.setSprite(sprite);
+        // TODO 4:
+        // Kembalikan bullet.
+        return bullet;
+    }
+
+    public static Bullet createPlayerBullet(float x, float y, int damage) {
+        // TODO 5:
+        // Kembalikan hasil call function createPlayerBullet sebelumnya tapi dengan parameter spriteKey diganti dengan "bullet_amulet".
+        return createPlayerBullet(x, y, damage, "bullet_amulet");
+    }
+
 }

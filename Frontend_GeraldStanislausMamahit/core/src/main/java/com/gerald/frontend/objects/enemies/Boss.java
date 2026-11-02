@@ -3,6 +3,9 @@ package com.gerald.frontend.objects.enemies;
 import com.badlogic.gdx.graphics.Color;
 import com.gerald.frontend.objects.Collidable;
 import com.gerald.frontend.objects.Player;
+import com.gerald.frontend.objects.patterns.ShootingPattern;
+import com.gerald.frontend.objects.patterns.shootingStrategy.SpreadShot;
+import com.gerald.frontend.systems.BulletManager;
 
 public class Boss extends Enemy {
     public Boss(String name, int hp) {
@@ -19,4 +22,15 @@ public class Boss extends Enemy {
             System.out.println("Player touches boss");
         }
     }
+
+    private ShootingPattern shootingPattern = new SpreadShot(200f, 3, 30f);
+
+    public void shootBullet(BulletManager bulletManager) {
+        if (shootingPattern != null && !isDestroyed()) {
+            shootingPattern.execute(x + width / 2 - 8, y, bulletManager, false);
+        }
+    }
+
+    public ShootingPattern getShootingPattern() { return shootingPattern; }
+    public void setShootingPattern(ShootingPattern shootingPattern) { this.shootingPattern = shootingPattern; }
 }

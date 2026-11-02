@@ -4,121 +4,135 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
-import java.util.List;
+import com.gerald.frontend.commands.InputHandler;
+import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.Player;
 import com.gerald.frontend.objects.enemies.Boss;
-import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.enemies.Fairy;
 import com.gerald.frontend.objects.items.Item;
 import com.gerald.frontend.objects.items.ItemType;
-import com.gerald.frontend.systems.AssetManager;
-import com.gerald.frontend.systems.EntityFactory;
-
+import com.gerald.frontend.systems.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import com.gerald.frontend.systems.CollisionReferee;
+import com.gerald.frontend.systems.BulletManager;
+import com.gerald.frontend.ui.GameHUD;
 
 public class Main extends ApplicationAdapter {
-    private ShapeRenderer shapeRenderer;
+    private SpriteBatch batch;
 
     private Player player;
-    private Fairy fairy;
+    private List<Fairy> fairy;
     private Boss boss;
     private Item powerItem;
     private Item pointItem;
     private List<GameObject> entities;
+    private BulletManager bulletManager;
+    private CollisionReferee collisionReferee;
+    private float enemyShootTimer = 0f;
+    private BulletManager bulletManager;
+    private CollisionReferee collisionReferee;
+    private InputHandler inputHandler;
+    private GameHUD gameHUD;
 
     @Override
     public void create() {
-        // TODO 1:
-        // Pada inisialisasi renderer, buat SpriteBatch dan simpan ke batch.
-        // Hint LibGDX: new SpriteBatch().
-        SpriteBatch batch = new SpriteBatch();
+        batch = new SpriteBatch();
 
-        // TODO 2:
-        // Inisialisasi list fairy dan entities sebagai ArrayList kosong.
-        List<Fairy> fairy = new ArrayList<>();
-        List<GameObject> entities = new ArrayList<>();
+        fairy = new ArrayList<>();
+        entities = new ArrayList<>();
 
-        // TODO 3:
-        // Sebelum membuat entitas, ambil instance AssetManager dan panggil init().
+        AssetManager.getInstance().init();
+        AudioManager.getInstance().init();
+        AudioManager.getInstance().playBgm();
+
+        bulletManager = new BulletManager();
+        collisionReferee = new CollisionReferee();
+
         AssetManager.getInstance().init();
 
-        // TODO 4:
-        // Ubah pembuatan semua entitas! Ikuti tabel dan buat Player, Fairy, Boss, dan Item
-        // agar memakai metode EntityFactory yang benar.
-        // Untuk kedua Fairy, masukkan mereka ke list fairy menggunakan add(...).
-        Player player = EntityFactory.createPlayer(280, 40, "Reimu Hakurei", 100, 15, 3);
-        Boss boss = EntityFactory.createBoss(380, 400, "Rumia", 150);
-        Item powerItem = EntityFactory.createItem(200, 450, ItemType.POWER);
-        Item pointItem = EntityFactory.createItem(320, 480, ItemType.POINT);
+        player = EntityFactory.createPlayer(200, 50, "Reimu Hakurei", 100, 15, 3);
         fairy.add(EntityFactory.createFairy(150, 380, "Red Fairy", 20));
         fairy.add(EntityFactory.createFairy(250, 380, "Blue Fairy", 20, "fairy_idle_blue"));
-        // TODO 5:
-        // Masukkan semua objek yang baru saja kita buat ke dalam entities.
-        entities.add(Player);
-        entities.add(Boss);
+        boss = EntityFactory.createBoss(250, 400, "Rumia", 150);
+        powerItem = EntityFactory.createItem(180, 450, ItemType.POWER);
+        pointItem = EntityFactory.createItem(220, 480, ItemType.POINT);
+
+        player.registerObserver(gameHUD);
+
+        entities.add(player);
+        entities.addAll(fairy);
+        entities.add(boss);
         entities.add(powerItem);
         entities.add(pointItem);
-    }
 
+        inputHandler.setEntities(entities);
+    }
 
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
 
-        // 1. Check Player Bullet shooting input (Key Z)
         if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            entities.add(player.shootBullet());
+            player.shootBullet(bulletManager);
         }
 
-        // 2. Generic update & safe removal of off-screen/destroyed entities using non-static instance method
+        if(Gdx.input.isKeyPressed(Input.Keys.R)){
+            restartGame();
+        }
+        updateEnemyScheduler(delta);
+
         updateAndClean(entities, delta, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        // 3. Collision detection between active entities
-        for (int i = 0; i < entities.size(); i++) {
-            for (int j = i + 1; j < entities.size(); j++) {
-                GameObject a = entities.get(i);
-                GameObject b = entities.get(j);
+        bulletManager.update(delta, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-                if (!a.isDestroyed() && !b.isDestroyed()) {
-                    if (a.getCoreHitbox().overlaps(b.getCoreHitbox())) {
-                        a.onCollision(b);
-                        b.onCollision(a);
-                    }
-                }
-            }
-        }
+        collisionReferee.resolveCollisions(player, entities, bulletManager);
 
-        // 4. Clear screen
-        ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
-
-        // 5. Render filled hitboxes with ShapeRenderer
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        for (GameObject entity : entities) {
-            if (!entity.isDestroyed()) {
-                entity.render(shapeRenderer);
-            }
-        }
-        shapeRenderer.end();
-
-        // ... Bagian atas tetap sama
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
 
         batch.begin();
         for (GameObject entity : entities) {
             if (!entity.isDestroyed()) {
-                // TODO: Buat agar setiap entity melakukan method .render() dengan mengoper parameter SpriteBatch.
-
+                entity.render(batch);
             }
         }
+
+        bulletManager.render(batch);
         batch.end();
     }
 
+    private void updateEnemyScheduler(float delta) {
+        enemyShootTimer += delta;
+        if (enemyShootTimer >= 1.5f) {
+            boss.shootBullet(bulletManager);
+            enemyShootTimer = 0f;
+        }
+    }
+
+    private void restartGame() {
+        System.out.println("[Main] Restarting game...");
+        entities.clear();
+        bulletManager.clearEnemyBullets();
+        bulletManager.clearPlayerBullets();
+        entities.add(player);
+        player.resetGame();
+
+        fairy.clear();
+        fairy.add(EntityFactory.createFairy(150, 380, "Red Fairy", 20));
+        fairy.add(EntityFactory.createFairy(250, 380, "Blue Fairy", 20, "fairy_idle_blue"));
+        boss = EntityFactory.createBoss(250, 400, "Rumia", 150);
+        powerItem = EntityFactory.createItem(180, 450, ItemType.POWER);
+        pointItem = EntityFactory.createItem(220, 480, ItemType.POINT);
+
+        entities.addAll(fairy);
+        entities.add(boss);
+        entities.add(powerItem);
+        entities.add(pointItem);
+    }
 
 
-    // Non-static (Instance) Generic Method with Bounded Type Parameter <T extends GameObject>
     public <T extends GameObject> void updateAndClean(List<T> list, float delta, float screenWidth, float screenHeight) {
         Iterator<T> iterator = list.iterator();
         while (iterator.hasNext()) {
@@ -127,7 +141,7 @@ public class Main extends ApplicationAdapter {
 
             if (entity.isOffScreen(screenWidth, screenHeight) || entity.isDestroyed()) {
                 System.out.println("Removed via Generic Iterator: " + entity.getClass().getSimpleName());
-                iterator.remove(); // Safe removal using Iterator!
+                iterator.remove();
             }
         }
     }
@@ -137,9 +151,7 @@ public class Main extends ApplicationAdapter {
         if (batch != null) {
             batch.dispose();
         }
+        AssetManager.getInstance().dispose();
 
-        // TODO: Panggil dispose untuk AssetManager agar Texture yang dimuat juga dilepas.
-        AssetManager.dispose();
     }
-
 }

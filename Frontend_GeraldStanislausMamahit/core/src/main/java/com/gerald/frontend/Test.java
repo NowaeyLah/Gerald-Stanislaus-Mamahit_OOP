@@ -9,6 +9,7 @@ import com.gerald.frontend.objects.BulletType;
 import com.gerald.frontend.objects.bullets.Bullet;
 import com.gerald.frontend.objects.items.Item;
 import com.gerald.frontend.objects.items.ItemType;
+import com.gerald.frontend.systems.BulletManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public class Test {
 
         // Instantiating objects (Player and Enemy)
         Player reimu = new Player("Reimu Hakurei", 100, 15, 3);
-        Enemy fairyBoss = new Enemy("Cirno (Stage 2 Boss)", 50);
+        Enemy fairyBoss = new Enemy("Rumia (Stage 1 Boss)", 50);
 
         System.out.println("\n--- Initial Battle State ---");
         System.out.println("Player: " + reimu.getName() + " | HP: " + reimu.getHp() + " | Power: " + reimu.getPower() + " | SpellCards: " + reimu.getSpellCards());
@@ -54,13 +55,13 @@ public class Test {
         // Instantiating polymorphic objects
         Player reimu2 = new Player("Reimu Hakurei", 100, 15, 3);
         Fairy fairy = new Fairy("Stage 1 Fairy", 20);
-        Boss cirno = new Boss("Cirno (Stage 2 Boss)", 150);
+        Boss rumia = new Boss("Rumia (Stage 1 Boss)", 150);
         Item pointItem = new Item(200, 450, 12, 12, 120f, "Point Item", 1000L);
 
         System.out.println("\n--- Testing Encapsulation & Inheritance ---");
         System.out.println("Player: " + reimu2.getName() + " | Position: (" + reimu2.getX() + ", " + reimu2.getY() + ")");
         System.out.println("Fairy:  " + fairy.getName() + " | Defeat Worth: " + fairy.getScoreValue() + " pts");
-        System.out.println("Boss:   " + cirno.getName() + " | Defeat Worth: " + cirno.getScoreValue() + " pts | Size: " + cirno.getWidth() + "x" + cirno.getHeight());
+        System.out.println("Boss:   " + rumia.getName() + " | Defeat Worth: " + rumia.getScoreValue() + " pts | Size: " + rumia.getWidth() + "x" + rumia.getHeight());
         System.out.println("Item:   " + pointItem.getItemType() + " | Value: " + pointItem.getScoreValue() + " pts | Speed: " + pointItem.getSpeed());
 
         System.out.println("\n--- Testing Item Movement Update ---");
@@ -72,7 +73,7 @@ public class Test {
         System.out.println("Initial Score: " + reimu2.getScore());
         reimu2.shoot(fairy);
         reimu2.collectItem(pointItem);
-        reimu2.shoot(cirno);
+        reimu2.shoot(rumia);
         System.out.println("Final Score: " + reimu2.getScore() + " pts");
 
         System.out.println("\n=== Module 2 Test Completed Successfully ===");
@@ -92,7 +93,7 @@ public class Test {
         List<GameObject> entities = new ArrayList<>();
         Player p = new Player(100, 100, "Reimu Hakurei", 100, 15, 3);
         Fairy f = new Fairy(100, 100, "Stage 1 Fairy", 20);     // Placed at (100, 100) -> Collides with player!
-        Boss b = new Boss(200, 200, "Cirno", 150);
+        Boss b = new Boss(200, 200, "Rumia", 150);
         Item item = new Item(300, 300, ItemType.POWER);
 
         entities.add(p);
@@ -127,7 +128,7 @@ public class Test {
         p.setX(300);
         p.setY(item.getY());
         System.out.println("Moving player to (300, " + item.getY() + ") (Item current position):");
-        if (p.getCoreHitbox().overlaps(item.getCoreHitbox())) {
+        if (p.getCoreHitbox().overlaps(item.getCoreHitbox()) || p.getGrazeHitbox().overlaps(item.getCoreHitbox())) {
             p.onCollision(item);
         }
 
@@ -140,6 +141,7 @@ public class Test {
         System.out.println("\n\n=== TOUHOU OOP PRACTICUM - MODULE 4: COLLECTIONS, GENERICS & ITERATORS ===");
 
         List<GameObject> gameEntities = new ArrayList<>();
+        BulletManager bulletManager = new BulletManager();
 
         Player player4 = new Player(200, 50, "Reimu Hakurei", 100, 15, 3);
         Fairy targetFairy = new Fairy(200, 200, "Target Fairy", 20); // Placed at y=200, HP 20
@@ -151,7 +153,8 @@ public class Test {
         System.out.println("Entities Count: " + gameEntities.size());
 
         System.out.println("\n--- Turn 1: Player Fires Bullet ---");
-        Bullet bullet1 = player4.shootBullet();
+        player4.shootBullet(bulletManager);
+        Bullet bullet1 = bulletManager.getActivePlayerBullets().get(0);
         bullet1.setX(200); // Align bullet X with Fairy
         bullet1.setY(150); // Placed below Fairy at y=150
         gameEntities.add(bullet1);

@@ -3,6 +3,7 @@ package com.gerald.frontend.objects.enemies;
 import com.badlogic.gdx.graphics.Color;
 import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.Player;
+import com.gerald.frontend.systems.AudioManager;
 
 public class Enemy extends GameObject {
     protected String name;
@@ -35,7 +36,8 @@ public class Enemy extends GameObject {
         System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
         if (wasAlive && this.hp == 0) {
             System.out.println(name + " was defeated!");
-            this.destroy(); // Mark enemy as destroyed/inactive so Iterator removes it!
+            AudioManager.getInstance().playSfx("enemyDead");
+            this.destroy();
             return true;
         }
         return false;
@@ -50,7 +52,6 @@ public class Enemy extends GameObject {
         return this.hp > 0;
     }
 
-    // Encapsulation getters and setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

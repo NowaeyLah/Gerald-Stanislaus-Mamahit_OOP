@@ -150,21 +150,23 @@ public class AssetManager {
 
         registerAnimationFromSheet("fairy_idle", "assets/fairy.png", 32, 32, 0, 3, 0.1f);
 
-        registerRegionFromSheet("bullet_danmaku", "assets/bullets_small.png", 16, 16, 1, 2);
+        registerRegionFromSheet("bullet_amulet", "assets/amulet_reimu.png", 16, 16, 0, 0);
+        registerRegionFromSheet("bullet_amulet_homing", "assets/amulet_reimu.png", 16, 16, 1, 0);
+        registerRegionFromSheet("bullet_danmaku", "assets/bullets_small.png", 16, 16, 2, 3);
 
         registerRegionFromSheet("item_power", "assets/items.png", 16, 16, 0, 0);
         registerRegionFromSheet("item_point", "assets/items.png", 16, 16, 0, 1);
-        registerRegionFromSheet("item_bomb",  "assets/items.png", 16, 16, 0, 2);
-        registerRegionFromSheet("item_life",  "assets/items.png", 16, 16, 0, 3);
+        registerRegionFromSheet("item_bomb",  "assets/items.png", 16, 16, 0, 3);
+        registerRegionFromSheet("item_life",  "assets/items.png", 16, 16, 0, 5);
 
-        registerAnimationFromSheet("player_idle", "assets/player.png", 32, 48,  0, 8, 0.125f);
-        registerAnimationFromSheet("player_left", "assets/player.png", 32, 48,  1, 4, 0.12f);
-        registerAnimationFromSheet("player_right", "assets/player.png", 32, 48,  2, 4, 0.12f);
-        registerAnimationFromSheet("boss_idle", "assets/rumia.png", 64, 64,  0, 4, 0.2f);
-        registerAnimationFromSheet("boss_left", "assets/rumia.png", 64, 64,  1, 4, 0.15f);
-        registerAnimationFromSheet("boss_right", "assets/rumia.png", 64, 64,  2, 4, 0.15f);
-        registerAnimationFromSheet("fairy_idle_red", "assets/fairy.png", 32, 32,  1, 8, 0.125f);
-        registerAnimationFromSheet("fairy_idle_blue", "assets/fairy.png", 32, 32,  0, 8, 0.125f);
+        registerAnimationFromSheet("player_idle",  "player.png", 32, 48, 0, 0, 8, 0.125f, Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_left",  "player.png", 32, 48, 1, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_right", "player.png", 32, 48, 2, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("boss_idle",    "rumia.png",  64, 64, 0, 0, 4, 0.2f,   Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("boss_left",    "rumia.png",  64, 64, 1, 0, 4, 0.15f,  Animation.PlayMode.REVERSED);
+        registerAnimationFromSheet("boss_right",   "rumia.png",  64, 64, 2, 0, 4, 0.15f,  Animation.PlayMode.NORMAL);
+        registerAnimationFromSheet("fairy_idle_red",  "fairy.png", 32, 32, 1, 0, 8, 0.125f, Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("fairy_idle_blue", "fairy.png", 32, 32, 0, 0, 8, 0.125f, Animation.PlayMode.LOOP);
 
 
 
