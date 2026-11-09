@@ -3,19 +3,19 @@ package com.gerald.frontend.objects.bullets;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.gerald.frontend.objects.Collidable;
 import com.gerald.frontend.objects.GameObject;
-import com.gerald.frontend.objects.BulletType;
 import com.badlogic.gdx.graphics.Color;
 import com.gerald.frontend.objects.enemies.Enemy;
+import com.gerald.frontend.objects.patterns.bulletStrategy.BulletMovementPattern;
 
 public class Bullet extends GameObject {
     private BulletType bulletType;
     private int damage;
-
     private float vx;
     private float vy;
     private float angle = 90f;
     private boolean isPlayerBullet;
     private boolean grazed;
+    private BulletMovementPattern movementPattern;
 
     public Bullet(float x, float y, BulletType bulletType, int damage) {
         super(x, y, 16, 16, 400f, Color.YELLOW);
@@ -39,35 +39,24 @@ public class Bullet extends GameObject {
         this.grazed = false;
     }
 
+    // Pool Re-initialization for Object Pool Pattern
     public void init(float x, float y, float vx, float vy, BulletType bulletType, int damage, boolean isPlayerBullet) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
         this.angle = (float) Math.toDegrees(Math.atan2(vy, vx));
-        this.speed = (float) Math.hypot(vx, vy);
+        float mag = (float) Math.hypot(vx, vy);
+        if (mag > 0f) {
+            this.speed = mag;
+        }
         this.bulletType = bulletType;
         this.damage = damage;
         this.isPlayerBullet = isPlayerBullet;
         this.active = true;
         this.stateTime = 0f;
-        this.grazed = false;
-    }
-
-    @Override
-    public void update(float delta) {
-        super.update(delta);
-        this.x += vx * delta;
-        this.y += vy * delta;
-    }
-
-    @Override
-    public void onCollision(Collidable other) {
-        if (other instanceof Enemy enemy) {
-            System.out.println("Bullet hit " + enemy.getName() + " for " + damage + " DMG!");
-            boolean defeated = enemy.takeDamage(damage);
-            this.destroy();
-        }
+        this.grazed = false; // Reset graze state for recycled pooled bullet
+        this.movementPattern = null;
     }
 
     @Override
@@ -81,31 +70,45 @@ public class Bullet extends GameObject {
         }
     }
 
-    public boolean isPlayerBullet() {
-        return isPlayerBullet;
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+        // TODO (6 poin):
+        // Periksa apakah movementPattern tidak bernilai null:
+        // - Jika ada (tidak null): delegasikan pergerakan ke movementPattern.move(this, delta);
+        // - Jika null: pertahankan pergerakan bawaan (tambahkan x sebesar vx * delta dan y sebesar vy * delta)
+        if (movementPattern != null) {
+            movementPattern.move(this, delta);
+        } else {
+            // Bullet movement using velocity components
+            this.x += vx * delta;
+            this.y += vy * delta;
+        }
     }
-    public float getVx() {
-        return vx;
+
+    @Override
+    public void onCollision(Collidable other) {
+        if (other instanceof Enemy enemy && isPlayerBullet) {
+            System.out.println("Bullet hit " + enemy.getName() + " for " + damage + " DMG!");
+            enemy.takeDamage(damage);
+            this.destroy(); // Bullet is deactivated and returned to pool
+        }
     }
-    public float getVy() {
-        return vy;
-    }
-    public float getAngle() {
-        return angle;
-    }
-    public void setAngle(float angle) {
-        this.angle = angle;
-    }
-    public boolean hasBeenGrazed() {
-        return grazed;
-    }
-    public void setGrazed(boolean grazed) {
-        this.grazed = grazed;
-    }
-    public BulletType getBulletType() {
-        return bulletType;
-    }
-    public int getDamage() {
-        return damage;
-    }
+
+    public BulletType getBulletType() { return bulletType; }
+    public int getDamage() { return damage; }
+    public boolean isPlayerBullet() { return isPlayerBullet; }
+    public float getVx() { return vx; }
+    public float getVy() { return vy; }
+
+    public float getAngle() { return angle; }
+    public void setAngle(float angle) { this.angle = angle; }
+
+    public float getStateTime() { return stateTime; }
+
+    public BulletMovementPattern getMovementPattern() { return movementPattern; }
+    public void setMovementPattern(BulletMovementPattern movementPattern) { this.movementPattern = movementPattern; }
+
+    public boolean hasBeenGrazed() { return grazed; }
+    public void setGrazed(boolean grazed) { this.grazed = grazed; }
 }

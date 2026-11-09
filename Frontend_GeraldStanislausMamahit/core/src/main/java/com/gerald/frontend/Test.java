@@ -5,7 +5,7 @@ import com.gerald.frontend.objects.Player;
 import com.gerald.frontend.objects.enemies.Boss;
 import com.gerald.frontend.objects.enemies.Enemy;
 import com.gerald.frontend.objects.enemies.Fairy;
-import com.gerald.frontend.objects.BulletType;
+import com.gerald.frontend.objects.bullets.BulletType;
 import com.gerald.frontend.objects.bullets.Bullet;
 import com.gerald.frontend.objects.items.Item;
 import com.gerald.frontend.objects.items.ItemType;

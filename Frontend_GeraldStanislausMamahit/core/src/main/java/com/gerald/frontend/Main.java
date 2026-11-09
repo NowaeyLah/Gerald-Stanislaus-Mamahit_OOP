@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.gerald.frontend.commands.Command;
 import com.gerald.frontend.commands.InputHandler;
 import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.Player;
@@ -22,37 +23,33 @@ import com.gerald.frontend.ui.GameHUD;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-
     private Player player;
     private List<Fairy> fairy;
     private Boss boss;
     private Item powerItem;
     private Item pointItem;
     private List<GameObject> entities;
-    private BulletManager bulletManager;
-    private CollisionReferee collisionReferee;
-    private float enemyShootTimer = 0f;
+
     private BulletManager bulletManager;
     private CollisionReferee collisionReferee;
     private InputHandler inputHandler;
     private GameHUD gameHUD;
+    private float enemyShootTimer = 0f;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-
         fairy = new ArrayList<>();
         entities = new ArrayList<>();
-
-        AssetManager.getInstance().init();
-        AudioManager.getInstance().init();
-        AudioManager.getInstance().playBgm();
-
         bulletManager = new BulletManager();
         collisionReferee = new CollisionReferee();
+        inputHandler = new InputHandler();
+        gameHUD = new GameHUD();
 
+        // 1. Centralized Asset Registration (AssetManager Singleton + Flyweight)
         AssetManager.getInstance().init();
 
+        // 2. Instantiate entities via Factory Pattern (EntityFactory)
         player = EntityFactory.createPlayer(200, 50, "Reimu Hakurei", 100, 15, 3);
         fairy.add(EntityFactory.createFairy(150, 380, "Red Fairy", 20));
         fairy.add(EntityFactory.createFairy(250, 380, "Blue Fairy", 20, "fairy_idle_blue"));
@@ -60,6 +57,7 @@ public class Main extends ApplicationAdapter {
         powerItem = EntityFactory.createItem(180, 450, ItemType.POWER);
         pointItem = EntityFactory.createItem(220, 480, ItemType.POINT);
 
+        // 3. Register GameHUD as Observer to Player (Observer Pattern)
         player.registerObserver(gameHUD);
 
         entities.add(player);
@@ -68,6 +66,7 @@ public class Main extends ApplicationAdapter {
         entities.add(powerItem);
         entities.add(pointItem);
 
+        // 4. Configure InputHandler with entities list for Bomb drops
         inputHandler.setEntities(entities);
     }
 
@@ -75,34 +74,49 @@ public class Main extends ApplicationAdapter {
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
-            player.shootBullet(bulletManager);
-        }
-
-        if(Gdx.input.isKeyPressed(Input.Keys.R)){
+        // 0. Restart Game on 'R' key when Game Over
+        if (Gdx.input != null && Gdx.input.isKeyJustPressed(Input.Keys.R) && player.isGameOver()) {
             restartGame();
         }
+
+        // 1. Process Input via Command Pattern (Bob Nystrom Invoker Command Stream)
+        List<Command> commands = inputHandler.handleInput(delta);
+        for (Command command : commands) {
+            command.execute(player, bulletManager);
+        }
+
+        // 2. Periodic Enemy Action Scheduler (Foreshadows Module 9 strategy updates)
         updateEnemyScheduler(delta);
 
-        updateAndClean(entities, delta, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // 3. Generic update & safe removal of standard entities
+        updateAndClean(entities, delta, 416, 560);
 
-        bulletManager.update(delta, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // 4. Object Pool Update (BulletManager)
+        bulletManager.update(delta, 416, 560);
 
+        // 5. Mediator Pattern Collision Resolution (CollisionReferee - Core vs Graze detection)
         collisionReferee.resolveCollisions(player, entities, bulletManager);
 
+        // 6. Clear screen
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1f);
 
+        // 7. Render active entity sprites, pooled bullets, and Observer UI HUD with SpriteBatch
         batch.begin();
         for (GameObject entity : entities) {
             if (!entity.isDestroyed()) {
                 entity.render(batch);
             }
         }
-
         bulletManager.render(batch);
+        gameHUD.render(batch);
         batch.end();
+
+        // 8. Render UI Frame Lines & Focus Mode Core Hurtbox Indicator (Drawn ON TOP of sprites!)
+        gameHUD.renderBackground();
+        player.renderFocusIndicator(gameHUD.getShapeRenderer());
     }
 
+    // Periodic Enemy Action Scheduler (Foreshadows Module 9 dynamic strategy updates)
     private void updateEnemyScheduler(float delta) {
         enemyShootTimer += delta;
         if (enemyShootTimer >= 1.5f) {
@@ -132,7 +146,7 @@ public class Main extends ApplicationAdapter {
         entities.add(pointItem);
     }
 
-
+    // Generic Instance Method with Bounded Type Parameter <T extends GameObject>
     public <T extends GameObject> void updateAndClean(List<T> list, float delta, float screenWidth, float screenHeight) {
         Iterator<T> iterator = list.iterator();
         while (iterator.hasNext()) {
@@ -141,7 +155,7 @@ public class Main extends ApplicationAdapter {
 
             if (entity.isOffScreen(screenWidth, screenHeight) || entity.isDestroyed()) {
                 System.out.println("Removed via Generic Iterator: " + entity.getClass().getSimpleName());
-                iterator.remove();
+                iterator.remove(); // Safe removal using Iterator!
             }
         }
     }
@@ -151,7 +165,9 @@ public class Main extends ApplicationAdapter {
         if (batch != null) {
             batch.dispose();
         }
+        if (gameHUD != null) {
+            gameHUD.dispose();
+        }
         AssetManager.getInstance().dispose();
-
     }
 }

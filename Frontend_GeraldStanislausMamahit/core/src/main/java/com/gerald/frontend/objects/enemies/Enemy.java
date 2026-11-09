@@ -1,11 +1,14 @@
 package com.gerald.frontend.objects.enemies;
 
 import com.badlogic.gdx.graphics.Color;
+import com.gerald.frontend.objects.EntityShooter;
 import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.Player;
+import com.gerald.frontend.objects.patterns.ShootingPattern;
+import com.gerald.frontend.objects.patterns.entityStrategy.EntityMovementPattern;
 import com.gerald.frontend.systems.AudioManager;
 
-public class Enemy extends GameObject {
+public class Enemy extends EntityShooter {
     protected String name;
     protected int hp;
     protected int maxHp;
@@ -27,6 +30,14 @@ public class Enemy extends GameObject {
         this.scoreValue = scoreValue;
     }
 
+    public Enemy(float x, float y, float width, float height, Color color, String name, int hp, long scoreValue, ShootingPattern shootingPattern, EntityMovementPattern movementPattern) {
+        super(x, y, width, height, 0, color, shootingPattern, movementPattern);
+        this.name = name;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.scoreValue = scoreValue;
+    }
+
     public boolean takeDamage(int damage) {
         boolean wasAlive = isAlive();
         this.hp -= damage;
@@ -36,8 +47,7 @@ public class Enemy extends GameObject {
         System.out.println(name + " took " + damage + " damage! HP: " + this.hp + "/" + this.maxHp);
         if (wasAlive && this.hp == 0) {
             System.out.println(name + " was defeated!");
-            AudioManager.getInstance().playSfx("enemyDead");
-            this.destroy();
+            this.destroy(); // Mark enemy as destroyed/inactive so Iterator removes it!
             return true;
         }
         return false;
@@ -52,6 +62,7 @@ public class Enemy extends GameObject {
         return this.hp > 0;
     }
 
+    // Encapsulation getters and setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

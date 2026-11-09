@@ -8,90 +8,115 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AssetManager {
-    // 1. Instans tunggal untuk Singleton
     private static AssetManager instance;
-
-    // 2. Cache untuk Flyweight Pattern
     private Map<String, TextureRegion> textureRegionMap;
     private Map<String, Animation<TextureRegion>> animationMap;
     private Map<String, Texture> textureMap;
 
-    // Cari tahu: kenapa Constructor AssetManager bersifat *private*?
     private AssetManager() {
-        // TODO: Inisialisasi ketiga Map di atas sebagai HashMap kosong
         textureRegionMap = new HashMap<>();
         animationMap = new HashMap<>();
         textureMap = new HashMap<>();
     }
 
-    // Titik akses global untuk mendapatkan instans tunggal
     public static AssetManager getInstance() {
-        // TODO: Jika instance masih null, buat instance baru (Lazy Initialization)
-        if(instance == null){
+        if (instance == null) {
             instance = new AssetManager();
         }
-        // Kembalikan referensi instance
         return instance;
     }
 
-    public Texture loadTexture(String filename) {
-        // TODO:
-        // 1. Periksa apakah filename sudah ada di dalam textureMap.
-        if(textureMap.containsKey(filename)){
-            return textureMap.get(filename);
-        }
-        // 2. Jika belum:
-        //    - Pastikan Gdx.files != null dan file tersebut ada via Gdx.files.internal(filename).exists()
-        //    - Buat Texture baru: new Texture(Gdx.files.internal(filename))
-        //    - Simpan ke dalam textureMap dengan key filename
-        //    - Jika file tidak ada / Gdx.files belum siap, kembalikan null
-        // 3. Kembalikan Texture yang tersimpan
-        if (Gdx.files != null && Gdx.files.internal(filename).exists()) {
-            Texture tex = new Texture(Gdx.files.internal(filename));
-            textureMap.put(filename, tex);
-            return tex;
-        }
-        return null;
+    public void init() {
+        // Reimu Animations (player.png: 32x48 per tile, 8 columns)
+        // Row 0: Idle (8 frames), Row 1: Left loop (Cols 0..3, 4 frames), Row 2: Right loop (Cols 0..3, 4 frames)
+        registerAnimationFromSheet("player_idle",       "player.png", 32, 48, 0, 0, 8, 0.125f, Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_left",       "player.png", 32, 48, 1, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_right",      "player.png", 32, 48, 2, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_left_loop",  "player.png", 32, 48, 1, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("player_right_loop", "player.png", 32, 48, 2, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
+
+        // Boss Rumia Animations (rumia.png: 64x64 per tile, 4 columns)
+        // Row 0: Idle (4 frames), Row 1: Left (4 frames, REVERSED), Row 2: Right (4 frames, NORMAL)
+        registerAnimationFromSheet("boss_idle",       "rumia.png", 64, 64, 0, 0, 4, 0.2f,  Animation.PlayMode.LOOP);
+        registerAnimationFromSheet("boss_left",       "rumia.png", 64, 64, 1, 0, 4, 0.15f, Animation.PlayMode.REVERSED);
+        registerAnimationFromSheet("boss_right",      "rumia.png", 64, 64, 2, 0, 4, 0.15f, Animation.PlayMode.NORMAL);
+        registerAnimationFromSheet("boss_left_loop",  "rumia.png", 64, 64, 1, 0, 4, 0.15f, Animation.PlayMode.REVERSED);
+        registerAnimationFromSheet("boss_right_loop", "rumia.png", 64, 64, 2, 0, 4, 0.15f, Animation.PlayMode.NORMAL);
+
+        // Stage 1 Fairy (fairy.png: 32x32 per tile)
+        registerAnimationFromSheet("fairy_idle_red",  "fairy.png", 32, 32, 1, 8, 0.125f);
+        registerAnimationFromSheet("fairy_idle_blue", "fairy.png", 32, 32, 0, 8, 0.125f);
+        registerAnimationFromSheet("fairy_idle",      "fairy.png", 32, 32, 1, 8, 0.125f);
+
+        // Bullets:
+        // Authentic Touhou 6 Ofuda Amulets from amulet_reimu.png (16x16)
+        // Col 0: Straight Amulet, Col 1: Homing Amulet
+        registerRegionFromSheet("bullet_amulet",        "amulet_reimu.png", 16, 16, 0, 0);
+        registerRegionFromSheet("bullet_amulet_homing", "amulet_reimu.png", 16, 16, 1, 0);
+
+        // Enemy Danmaku from bullets_small.png (16x16, Row 2, Col 3: blue orb)
+        registerRegionFromSheet("bullet_danmaku",       "bullets_small.png", 16, 16, 2, 3);
+        // TODO (4 poin): Daftarkan variasi warna tekstur peluru Danmaku (bullets_small.png, ukuran 16x16 per tile)
+        // Gunakan registerRegionFromSheet() dengan parameter: key, filename, tileWidth, tileHeight, row, col
+        registerRegionFromSheet("bullet_danmaku_blue",   "bullets_small.png", 16, 16, 2, 3);
+        registerRegionFromSheet("bullet_danmaku_red",    "bullets_small.png", 16, 16, 2, 6);
+        registerRegionFromSheet("bullet_danmaku_purple", "bullets_small.png", 16, 16, 2, 4);
+        registerRegionFromSheet("bullet_danmaku_orange", "bullets_small.png", 16, 16, 2, 15);
+        registerRegionFromSheet("bullet_danmaku_green",  "bullets_small.png", 16, 16, 2, 10);
+
+        // Correct items.png column coordinates (16x16 per cell):
+        registerRegionFromSheet("item_power", "items.png", 16, 16, 0, 0);
+        registerRegionFromSheet("item_point", "items.png", 16, 16, 0, 1);
+        registerRegionFromSheet("item_bomb",  "items.png", 16, 16, 0, 3);
+        registerRegionFromSheet("item_life",  "items.png", 16, 16, 0, 5);
     }
 
-    // ========================================================================
-// Register the Region Textures
-// ========================================================================
+    // 1. O(1) Dynamic Flyweight Lookups (No switch statements)
+    public TextureRegion getTextureRegion(String key) {
+        return textureRegionMap.get(key);
+    }
 
-    // Mendaftarkan region tunggal
+    public TextureRegion getRegion(String key) {
+        return getTextureRegion(key);
+    }
+
+    public Animation<TextureRegion> getAnimation(String key) {
+        return animationMap.get(key);
+    }
+
+    // 2. Generic Registration Methods
+    public Texture loadTexture(String filename) {
+        if (!textureMap.containsKey(filename)) {
+            if (Gdx.files != null && Gdx.files.internal(filename).exists()) {
+                textureMap.put(filename, new Texture(Gdx.files.internal(filename)));
+            } else {
+                return null;
+            }
+        }
+        return textureMap.get(filename);
+    }
+
     public void registerRegion(String key, TextureRegion region) {
         textureRegionMap.put(key, region);
     }
 
-    // Memotong satu petak tertentu dari sprite sheet pada koordinat [row][col]
     public void registerRegionFromSheet(String key, String filename, int tileWidth, int tileHeight, int row, int col) {
         Texture tex = loadTexture(filename);
         if (tex != null) {
             TextureRegion[][] grid = TextureRegion.split(tex, tileWidth, tileHeight);
-            // TODO: Simpan potongan grid[row][col] ke textureRegionMap dengan key ini
             textureRegionMap.put(key, grid[row][col]);
-
         }
     }
 
-    // Overload praktis: mendaftarkan animasi mulai dari kolom 0 dengan PlayMode.LOOP
     public void registerAnimationFromSheet(String key, String filename, int tileWidth, int tileHeight, int row, int numFrames, float frameDuration) {
         registerAnimationFromSheet(key, filename, tileWidth, tileHeight, row, 0, numFrames, frameDuration, Animation.PlayMode.LOOP);
     }
 
-    // Mendaftarkan serangkaian frame horizontal sebagai objek Animation
     public void registerAnimationFromSheet(String key, String filename, int tileWidth, int tileHeight, int row, int startCol, int numFrames, float frameDuration, Animation.PlayMode playMode) {
         Texture tex = loadTexture(filename);
         if (tex != null) {
             TextureRegion[][] grid = TextureRegion.split(tex, tileWidth, tileHeight);
 
-            // TODO:
-            // 1. Buat array TextureRegion[] sepanjang numFrames
-            // 2. Isi array dengan grid[row][startCol + i]
-            // 3. Buat Animation<TextureRegion> anim = new Animation<>(frameDuration, frames);
-            // 4. Set play mode animasi: anim.setPlayMode(playMode);
-            // 5. Simpan anim ke animationMap dengan key
-            // 6. Simpan frame pertama (frames[0]) ke textureRegionMap dengan key yang sama (sebagai sprite default)
             TextureRegion[] frames = new TextureRegion[numFrames];
             for (int i = 0; i < numFrames; i++) {
                 frames[i] = grid[row][startCol + i];
@@ -105,7 +130,6 @@ public class AssetManager {
         }
     }
 
-    // Overload untuk animasi yang dibalik arahnya (misal menghadap kiri dengan flip horizontal)
     public void registerFlippedAnimationFromSheet(String key, String filename, int tileWidth, int tileHeight, int row, int numFrames, float frameDuration, boolean flipX, boolean flipY) {
         registerFlippedAnimationFromSheet(key, filename, tileWidth, tileHeight, row, 0, numFrames, frameDuration, Animation.PlayMode.LOOP, flipX, flipY);
     }
@@ -115,8 +139,6 @@ public class AssetManager {
         if (tex != null) {
             TextureRegion[][] grid = TextureRegion.split(tex, tileWidth, tileHeight);
 
-            // TODO: Sama seperti registerAnimationFromSheet, tetapi setiap frame
-            // di-copy via 'new TextureRegion(...)' lalu panggil 'frame.flip(flipX, flipY)'
             TextureRegion[] frames = new TextureRegion[numFrames];
             for (int i = 0; i < numFrames; i++) {
                 frames[i] = new TextureRegion(grid[row][startCol + i]);
@@ -131,56 +153,12 @@ public class AssetManager {
         }
     }
 
-    public TextureRegion getTextureRegion(String key) {
-        return textureRegionMap.get(key);
-    }
-
-    public TextureRegion getRegion(String key) {
-        return getTextureRegion(key);
-    }
-
-    public Animation<TextureRegion> getAnimation(String key) {
-        return animationMap.get(key);
-    }
-
-    public void init() {
-        registerAnimationFromSheet("player_idle", "assets/player.png", 32, 48, 0, 4, 0.1f);
-
-        registerAnimationFromSheet("boss_idle", "assets/rumia.png", 64, 64, 0, 4, 0.15f);
-
-        registerAnimationFromSheet("fairy_idle", "assets/fairy.png", 32, 32, 0, 3, 0.1f);
-
-        registerRegionFromSheet("bullet_amulet", "assets/amulet_reimu.png", 16, 16, 0, 0);
-        registerRegionFromSheet("bullet_amulet_homing", "assets/amulet_reimu.png", 16, 16, 1, 0);
-        registerRegionFromSheet("bullet_danmaku", "assets/bullets_small.png", 16, 16, 2, 3);
-
-        registerRegionFromSheet("item_power", "assets/items.png", 16, 16, 0, 0);
-        registerRegionFromSheet("item_point", "assets/items.png", 16, 16, 0, 1);
-        registerRegionFromSheet("item_bomb",  "assets/items.png", 16, 16, 0, 3);
-        registerRegionFromSheet("item_life",  "assets/items.png", 16, 16, 0, 5);
-
-        registerAnimationFromSheet("player_idle",  "player.png", 32, 48, 0, 0, 8, 0.125f, Animation.PlayMode.LOOP);
-        registerAnimationFromSheet("player_left",  "player.png", 32, 48, 1, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
-        registerAnimationFromSheet("player_right", "player.png", 32, 48, 2, 0, 4, 0.12f,  Animation.PlayMode.LOOP);
-        registerAnimationFromSheet("boss_idle",    "rumia.png",  64, 64, 0, 0, 4, 0.2f,   Animation.PlayMode.LOOP);
-        registerAnimationFromSheet("boss_left",    "rumia.png",  64, 64, 1, 0, 4, 0.15f,  Animation.PlayMode.REVERSED);
-        registerAnimationFromSheet("boss_right",   "rumia.png",  64, 64, 2, 0, 4, 0.15f,  Animation.PlayMode.NORMAL);
-        registerAnimationFromSheet("fairy_idle_red",  "fairy.png", 32, 32, 1, 0, 8, 0.125f, Animation.PlayMode.LOOP);
-        registerAnimationFromSheet("fairy_idle_blue", "fairy.png", 32, 32, 0, 0, 8, 0.125f, Animation.PlayMode.LOOP);
-
-
-
-
-    }
-
     public void dispose() {
         for (Texture tex : textureMap.values()) {
-            tex.dispose();
+            if (tex != null) tex.dispose();
         }
         textureMap.clear();
         textureRegionMap.clear();
         animationMap.clear();
     }
-
 }
-

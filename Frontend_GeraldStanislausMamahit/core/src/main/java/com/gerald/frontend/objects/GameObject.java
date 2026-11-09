@@ -14,11 +14,10 @@ public abstract class GameObject implements Collidable {
     protected float height;
     protected float speed;
     protected Color color;
-    protected boolean active = true;
-
     protected TextureRegion sprite;
     protected Animation<TextureRegion> animation;
     protected float stateTime = 0f;
+    protected boolean active = true;
 
     public GameObject(float x, float y, float width, float height, float speed, Color color) {
         this.x = x;
@@ -33,17 +32,12 @@ public abstract class GameObject implements Collidable {
         stateTime += delta;
     }
 
-    public void render(ShapeRenderer shapeRenderer) {
-        if (shapeRenderer != null && color != null && active) {
-            shapeRenderer.setColor(color);
-            shapeRenderer.rect(x, y, width, height);
-        }
-    }
-
+    // Render with SpriteBatch (respects animation PlayMode - LOOP vs NORMAL)
     public void render(SpriteBatch batch) {
         if (batch != null && active) {
             if (animation != null) {
-                TextureRegion currentFrame = animation.getKeyFrame(stateTime);
+                boolean looping = (animation.getPlayMode() == Animation.PlayMode.LOOP);
+                TextureRegion currentFrame = animation.getKeyFrame(stateTime, looping);
                 batch.draw(currentFrame, x, y, width, height);
             } else if (sprite != null) {
                 batch.draw(sprite, x, y, width, height);
@@ -51,35 +45,31 @@ public abstract class GameObject implements Collidable {
         }
     }
 
-    public TextureRegion getSprite() {
-        return sprite;
+    // Render fallback with ShapeRenderer (for geometric hitboxes)
+    public void render(ShapeRenderer shapeRenderer) {
+        if (shapeRenderer != null && color != null && active) {
+            shapeRenderer.setColor(color);
+            shapeRenderer.rect(x, y, width, height);
+        }
     }
 
-    public void setSprite(TextureRegion sprite) {
-        this.sprite = sprite;
-    }
-
-    public Animation<TextureRegion> getAnimation() {
-        return animation;
-    }
-
-    public void setAnimation(Animation<TextureRegion> animation) {
-        this.animation = animation;
-    }
-
+    // Core Hitbox: Centered smaller death hurtbox inside the object
     @Override
     public Rectangle getCoreHitbox() {
+        float cw = width * 0.5f;
+        float ch = height * 0.5f;
+        return new Rectangle(x + (width - cw) / 2f, y + (height - ch) / 2f, cw, ch);
+    }
+
+    // Graze Hitbox: Full sprite dimensions for close-call detection
+    @Override
+    public Rectangle getGrazeHitbox() {
         return new Rectangle(x, y, width, height);
     }
 
     @Override
-    public Rectangle getGrazeHitbox() {
-        return new Rectangle(x - 10, y - 10, width + 20, height + 20);
-    }
-
-    @Override
     public void onCollision(Collidable other) {
-
+        // Base collision handler
     }
 
     public boolean isDestroyed() {
@@ -94,6 +84,7 @@ public abstract class GameObject implements Collidable {
         return (x < -50 || x > screenWidth + 50 || y < -50 || y > screenHeight + 50);
     }
 
+    // Encapsulation: Getters and Setters
     public float getX() { return x; }
     public void setX(float x) { this.x = x; }
 
@@ -117,5 +108,23 @@ public abstract class GameObject implements Collidable {
 
     public Color getColor() { return color; }
     public void setColor(Color color) { this.color = color; }
+
+    public TextureRegion getSprite() { return sprite; }
+    public void setSprite(TextureRegion sprite) { this.sprite = sprite; }
+
+    public Animation<TextureRegion> getAnimation() { return animation; }
+    public void setAnimation(Animation<TextureRegion> animation) {
+        if (this.animation != animation) {
+            this.animation = animation;
+            this.stateTime = 0f; // Reset frame timer when changing animation
+        }
+    }
+
     public boolean isActive() { return active; }
+
+    public void setActive(boolean active) { this.active = active; }
+
+    public float getStateTime() { return stateTime; }
+    public void setStateTime(float stateTime) { this.stateTime = stateTime; }
+
 }
