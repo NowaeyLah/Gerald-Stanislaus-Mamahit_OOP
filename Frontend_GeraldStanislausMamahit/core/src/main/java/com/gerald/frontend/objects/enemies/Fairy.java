@@ -8,23 +8,23 @@ import com.gerald.frontend.objects.patterns.shootingStrategy.FrontShot;
 
 public class Fairy extends Enemy {
     private float shootTimer = 0f;
-    private float shootDelay = 0.67f;
-    private float shootInterval = 1.4f;
-    private int maxShots = 2;
+    private float shootDelay = 0.67f; // ZUN EoSD tick 40: 0.67s entry delay before first shot
+    private float shootInterval = 1.4f; // Subsequent shot interval
+    private int maxShots = 2; // Stream fairies fire 1-2 shots before exiting
     private int shotsFired = 0;
 
     public Fairy(String name, int hp) {
         super(150, 380, 24, 24, Color.PINK, name, hp, 500L);
-        // TODO (1 poin): Suntikkan strategi bawaan FrontShot(150f, 10) dan LinearEntityMovement(0f, -40f)
-        shootingPattern = new FrontShot(150f, 10);
-        movementPattern = new LinearEntityMovement(0f, -40f);
+        setShootingPattern(new FrontShot(150f, 10));
+        setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public Fairy(float x, float y, String name, int hp) {
         super(x, y, 24, 24, Color.PINK, name, hp, 500L);
-        // TODO: Suntikkan strategi bawaan yang sama
-        shootingPattern = new FrontShot(150f, 10);
-        movementPattern = new LinearEntityMovement(0f, -40f);
+        setShootingPattern(new FrontShot(150f, 10));
+        setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public Fairy(float x, float y, String name, int hp, float shootDelay, float shootInterval, int maxShots) {
@@ -32,9 +32,9 @@ public class Fairy extends Enemy {
         this.shootDelay = shootDelay;
         this.shootInterval = shootInterval;
         this.maxShots = maxShots;
-        // TODO (2 poin): Suntikkan strategi bawaan FrontShot dan LinearEntityMovement
-        shootingPattern = new FrontShot(150f, 10);
-        movementPattern = new LinearEntityMovement(0f, -40f);
+        setShootingPattern(new FrontShot(150f, 10));
+        setMovementPattern(new LinearEntityMovement(0f, -40f));
+        setShotHitboxSize(28f, 28f);
     }
 
     public boolean canShoot(float delta) {

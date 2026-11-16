@@ -16,10 +16,10 @@ import java.util.*;
 public class BulletManager {
     private List<Bullet> activePlayerBullets;
     private List<Bullet> activeEnemyBullets;
+
     private Queue<Bullet> playerBulletPool;
     private Queue<Bullet> enemyBulletPool;
     private List<GameObject> entities;
-
 
     public BulletManager() {
         activePlayerBullets = new ArrayList<>();
@@ -29,44 +29,61 @@ public class BulletManager {
     }
 
     // Object Pool Spawning for Player Bullets via EntityFactory
-    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage) {
-        return spawnPlayerBullet(x, y, vx, vy, damage, "bullet_amulet");
-    }
-
-
-    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage, String spriteKey) { // Tambahin String spriteKey sebagai parameter
-        String key = (spriteKey != null) ? spriteKey : "bullet_amulet"; // Tambahkan variabel String lokal key
+    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage, String spriteKey) {
+        String key = (spriteKey != null) ? spriteKey : "bullet_amulet";
         Bullet bullet;
         if (!playerBulletPool.isEmpty()) {
-            bullet = playerBulletPool.poll();
+            bullet = playerBulletPool.poll(); // Recycles pooled object
             bullet.init(x, y, vx, vy, BulletType.AMULET, damage, true);
-            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key)); // Tambahkan setSprite menggunakan key
+            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key));
         } else {
-            bullet = EntityFactory.createPlayerBullet(x, y, damage, key); // Tambahkan key sebagai argumen ke-4
+            bullet = EntityFactory.createPlayerBullet(x, y, damage, key); // Factory Pattern
             bullet.init(x, y, vx, vy, BulletType.AMULET, damage, true);
         }
         activePlayerBullets.add(bullet);
         return bullet;
     }
 
-    // Object Pool Spawning for Enemy Bullets via EntityFactory
-    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage) {
-        return spawnEnemyBullet(x, y, vx, vy, damage, "bullet_danmaku");
+    public Bullet spawnPlayerBullet(float x, float y, float vx, float vy, int damage) {
+        return spawnPlayerBullet(x, y, vx, vy, damage, "bullet_amulet");
     }
 
-    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage, String spriteKey) { // Tambahin String spriteKey sebagai parameter
-        String key = (spriteKey != null) ? spriteKey : "bullet_danmaku"; // Tambahkan variabel String lokal key
+    // Spawns 8 giant homing Fantasy Seal spirit orbs for Player's Bomb Execution
+    // Strategy Composition: RingShot (Spawn Strategy) composed with FantasySealMovement (Trajectory Strategy)
+    public void spawnBombOrbs(float originX, float originY, GameObject targetEnemy, List<GameObject> entities) {
+        int orbCount = 8;
+        int orbDamage = 35; // 35 damage x 8 orbs = 280 total spell card damage potential!
+
+        // RingShot composed with FantasySealMovement strategy!
+        List<GameObject> targetEntities = (entities != null) ? entities : this.entities;
+        RingShot ringShot = new RingShot(150f, orbCount, orbDamage, new FantasySealMovement(targetEnemy, targetEntities));
+        ringShot.execute(originX, originY, this, true);
+
+        System.out.println("[BulletManager] Spawned 8 Bomb Spirit Orbs via RingShot composed with FantasySealMovement!");
+    }
+
+    public void spawnBombOrbs(float originX, float originY, GameObject targetEnemy) {
+        spawnBombOrbs(originX, originY, targetEnemy, null);
+    }
+
+    // Object Pool Spawning for Enemy Bullets via EntityFactory
+    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage, String spriteKey) {
+        String key = (spriteKey != null) ? spriteKey : "bullet_danmaku";
         Bullet bullet;
         if (!enemyBulletPool.isEmpty()) {
-            bullet = enemyBulletPool.poll();
+            bullet = enemyBulletPool.poll(); // Recycles pooled object
             bullet.init(x, y, vx, vy, BulletType.DANMAKU, damage, false);
-            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key)); // Tambahkan setSprite menggunakan key
+            bullet.setSprite(AssetManager.getInstance().getTextureRegion(key));
         } else {
-            bullet = EntityFactory.createEnemyBullet(x, y, damage, key); // Tambahkan key sebagai argumen ke-4
+            bullet = EntityFactory.createEnemyBullet(x, y, damage, key); // Factory Pattern
             bullet.init(x, y, vx, vy, BulletType.DANMAKU, damage, false);
         }
         activeEnemyBullets.add(bullet);
         return bullet;
+    }
+
+    public Bullet spawnEnemyBullet(float x, float y, float vx, float vy, int damage) {
+        return spawnEnemyBullet(x, y, vx, vy, damage, "bullet_danmaku");
     }
 
     public void update(float delta, float screenWidth, float screenHeight) {
@@ -138,20 +155,19 @@ public class BulletManager {
         }
     }
 
-    public void spawnBombOrbs(float originX, float originY, GameObject targetEnemy, List<GameObject> entities) {
-        int orbCount = 8;
-        int orbDamage = 35; // 35 damage x 8 orbs = 280 total spell card damage potential!
-
-        List<GameObject> targetEntities = (entities != null) ? entities : this.entities;
-        // TODO (2 poin): Terapkan Strategy Composition — buat objek RingShot dengan bulletSpeed 150f, jumlah peluru orbCount, damage orbDamage, dan strategi pergerakan peluru berupa FantasySealMovement(targetEnemy, targetEntities), lalu panggil execute(originX, originY, this, true)
-        new CompositeShootingPattern(new RingShot(150f, orbCount, orbDamage, FantasySealMovement(targetEnemy, targetEntities), n)
-        System.out.println("[BulletManager] Spawned 8 Bomb Spirit Orbs via RingShot composed with FantasySealMovement!");
+    public void freePlayerBullet(Bullet bullet) {
+        if (activePlayerBullets.remove(bullet)) {
+            bullet.destroy();
+            playerBulletPool.offer(bullet);
+        }
     }
 
-    public void spawnBombOrbs(float originX, float originY, GameObject targetEnemy) {
-        spawnBombOrbs(originX, originY, targetEnemy, null);
+    public void freeEnemyBullet(Bullet bullet) {
+        if (activeEnemyBullets.remove(bullet)) {
+            bullet.destroy();
+            enemyBulletPool.offer(bullet);
+        }
     }
-
 
     // Dynamic Getters & Clean Recycling Methods for Testing
     public List<Bullet> getActivePlayerBullets() { return activePlayerBullets; }

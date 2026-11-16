@@ -1,9 +1,11 @@
 package com.gerald.frontend.objects.enemies;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Rectangle;
 import com.gerald.frontend.objects.EntityShooter;
 import com.gerald.frontend.objects.GameObject;
 import com.gerald.frontend.objects.Player;
+import com.gerald.frontend.objects.items.ItemType;
 import com.gerald.frontend.objects.patterns.ShootingPattern;
 import com.gerald.frontend.objects.patterns.entityStrategy.EntityMovementPattern;
 import com.gerald.frontend.systems.AudioManager;
@@ -13,6 +15,11 @@ public class Enemy extends EntityShooter {
     protected int hp;
     protected int maxHp;
     protected long scoreValue;
+    protected ItemType itemDrop = null;
+    protected boolean damageable = true;
+    protected boolean collidable = true;
+    protected float shotHitboxWidth = 0f;
+    protected float shotHitboxHeight = 0f;
 
     public Enemy(String name, int hp) {
         super(200, 380, 24, 24, 0, Color.PINK);
@@ -39,6 +46,9 @@ public class Enemy extends EntityShooter {
     }
 
     public boolean takeDamage(int damage) {
+        if (!damageable) {
+            return false;
+        }
         boolean wasAlive = isAlive();
         this.hp -= damage;
         if (this.hp < 0) {
@@ -61,6 +71,29 @@ public class Enemy extends EntityShooter {
     public boolean isAlive() {
         return this.hp > 0;
     }
+
+    public ItemType getItemDrop() { return itemDrop; }
+    public void setItemDrop(ItemType itemDrop) { this.itemDrop = itemDrop; }
+
+    public boolean isDamageable() { return damageable; }
+    public void setDamageable(boolean damageable) { this.damageable = damageable; }
+
+    public boolean isCollidable() { return collidable; }
+    public void setCollidable(boolean collidable) { this.collidable = collidable; }
+
+    public Rectangle getShotHitbox() {
+        if (shotHitboxWidth <= 0f || shotHitboxHeight <= 0f) {
+            return getCoreHitbox();
+        }
+        return new Rectangle(x + (width - shotHitboxWidth) / 2f, y + (height - shotHitboxHeight) / 2f,
+            shotHitboxWidth, shotHitboxHeight);
+    }
+
+    public void setShotHitboxSize(float width, float height) {
+        this.shotHitboxWidth = width;
+        this.shotHitboxHeight = height;
+    }
+
 
     // Encapsulation getters and setters
     public String getName() { return name; }

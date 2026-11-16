@@ -1,6 +1,7 @@
 package com.gerald.frontend.objects.bullets;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
 import com.gerald.frontend.objects.Collidable;
 import com.gerald.frontend.objects.GameObject;
 import com.badlogic.gdx.graphics.Color;
@@ -16,6 +17,7 @@ public class Bullet extends GameObject {
     private boolean isPlayerBullet;
     private boolean grazed;
     private BulletMovementPattern movementPattern;
+    private static final float PLAYER_SHOT_HITBOX = 12f;
 
     public Bullet(float x, float y, BulletType bulletType, int damage) {
         super(x, y, 16, 16, 400f, Color.YELLOW);
@@ -93,6 +95,14 @@ public class Bullet extends GameObject {
             enemy.takeDamage(damage);
             this.destroy(); // Bullet is deactivated and returned to pool
         }
+    }
+
+    public Rectangle getShotHitbox() {
+        if (!isPlayerBullet) {
+            return getCoreHitbox();
+        }
+        return new Rectangle(x + (width - PLAYER_SHOT_HITBOX) / 2f, y + (height - PLAYER_SHOT_HITBOX) / 2f,
+            PLAYER_SHOT_HITBOX, PLAYER_SHOT_HITBOX);
     }
 
     public BulletType getBulletType() { return bulletType; }
